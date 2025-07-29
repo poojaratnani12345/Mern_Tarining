@@ -6,12 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" media="screen and (max-width:1100px)"   href="phone_style.css">
 </head>
 <body>
+   
     <div id="HeroV2">
-        <div id="navbar">
-            <img src="Logo.svg" alt="Logo" width="180px" height="85px" style="padding-top: 12px;">
+        <nav>
+            <div id="nav-image">
+                <img src="Logo.svg" alt="Logo">
+            </div>
             <div id="menu">
                 <a>How it works</a>
                 <a>Promotions</a>
@@ -24,11 +26,12 @@
                 <a>About Us</a>
                 <a>Contact</a>
             </div>
-            <div id="menu-toggle">
-                <img src="menu.svg" alt="menu icon">
+            <div id="menu-toggle" tabindex="0" role="button" aria-label="Toggle menu">
+                <img src="menu.svg" alt="menu icon" />
               </div>
-            
-        </div>
+              
+        </nav>
+       
         <div class="container">
             <div id="text">
                 <h1>The easiest way to manage your storage</h1>
@@ -49,7 +52,6 @@
                     <img src="_Client logo (3).svg">
                     <img src="_Client logo (4).svg">
                     <img src="Layer 2.svg">
-                    <!-- Duplicate logos for seamless loop -->
                     <img src="_Client logo.svg" />
                     <img src="_Client logo (1).svg" />
                     <img src="_Client logo (2).svg" />
@@ -60,6 +62,8 @@
 
             </div>
         </div>
+         
+
         <div class="features">
             <div class="unmessify-features">
                 <div class="heading">
@@ -189,14 +193,14 @@
                     </div>
                 </div>
             </div>
-            <div class="footer">
+            <footer class="footer">
                 <div class="footer-frame">
-                    <img src="Frame 3.svg" alt="Logo" width="180px" height="85px" style="padding-top: 12px;">
-                    <p>Copyright © 2022 unmessify. </p>
+                    <img src="Frame 3.svg" alt="Logo" width="180" height="85" style="padding-top: 12px;">
+                    <p>Copyright © 2022 Unmessify.</p>
                     <p>All rights reserved</p>
                     <div class="footer-image">
-                        <img src="Group 33720.svg">
-                        <img src="Group 33721.svg">
+                        <img src="Group 33720.svg" alt="Social Icon 1">
+                        <img src="Group 33721.svg" alt="Social Icon 2">
                     </div>
                 </div>
                 <div class="links">
@@ -210,19 +214,30 @@
                         <h2>Support</h2>
                         <p>FAQ</p>
                         <p>Terms of service</p>
-                        <p>Terms of service</p>
+                        <p>Privacy Policy</p>
                     </div>
                     <div class="col3">
-                        <h2>Support</h2>
+                        <h2>Subscribe</h2>
                         <div class="input-text">
-                            <input type="email" placeholder="Your email address">
-                            <img src="send-2.svg" alt="Send">
+                            <img src="Email Input Field.svg" alt="Send">
                         </div>
                     </div>
                 </div>
-            </div>
+            </footer>
+            
         </div>
     </div>
+
+
+    <script>
+        const menuToggle = document.getElementById('menu-toggle');
+        const menu = document.getElementById('menu');
+        
+        menuToggle.addEventListener('click', () => {
+          menu.classList.toggle('show');
+        }); 
+    </script>
+
 </body>
 
 </html>
