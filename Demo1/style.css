@@ -68,11 +68,12 @@ nav {
     padding: 2rem;
     gap: 2rem;
     justify-content: center;
-    text-align: center;
+    text-align: left;
 }
 
 #text {
     flex: 1 1 400px;
+
 }
 
 #text h1 {
@@ -162,10 +163,10 @@ nav {
     /* gap: 2rem; */
     align-items: center;
     justify-content: center;
-    padding: 2rem;
+    /* padding: 2rem; */
     background-color: #4F7EF7;
     border-radius: 24px;
-    margin: 5rem 1rem; 
+    /* margin: 5rem 1rem;  */
 }
 .discount-text{
     padding: 1rem;
@@ -182,7 +183,7 @@ nav {
 .discount-image,
 .discount-text {
     flex: 1 1 300px;
-    text-align: center; 
+    text-align: left; 
 }
 
 
@@ -271,7 +272,7 @@ nav {
 .cta {
     background-color: #4f7ef712;
     position: relative;
-    text-align: center;
+    text-align: left;
     /* padding-top: 200px;  */
     /* padding-bottom: 10rem; */
 }
@@ -319,7 +320,7 @@ footer.footer {
 }
 
 .footer-frame {
-    text-align: center;
+    text-align: left;
     margin-bottom: 2rem;
 
 }
@@ -347,7 +348,7 @@ footer.footer {
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 2rem;
     justify-content: center;
-    text-align: center;
+    text-align: left;
     display: flex;
     flex-wrap: wrap;
 }
@@ -376,7 +377,7 @@ input[type="email"] {
 .col2 p,
 .col3 p {
     color: #9FA5C0;
-    padding: 0.5rem;
+    padding: 1rem;
 }
 
 /* @media (max-width: 833px){

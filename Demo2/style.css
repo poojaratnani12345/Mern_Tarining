@@ -1,0 +1,57 @@
+body{
+    margin: 0;
+}
+#navbar{
+    padding: 2rem;
+    text-align:end;
+    background-color: rgb(13, 67, 87);
+}
+#navbar a{
+    margin: 2rem;
+    text-decoration: none;
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    padding: 0.4rem;
+    color: aliceblue;
+}
+#welcome_quize{
+    font-size: clamp(2rem, 3vw, 2.5rem);
+    text-align: center;
+}
+
+
+/* registration page */
+.registration-container{
+    border: 2prx solid black;    
+    text-align: center;
+    color: rgb(13, 67, 87);
+
+}
+
+.registration-form{
+    /* border: 2px solid black; */
+    padding: 40px;
+    margin: 40px 350px 40px 350px;
+    box-shadow: 5px 5px 15px rgba(13, 67, 87, 0.38);
+    border-radius: 25px;
+}
+.registration-form label{
+    margin: 10px;
+    font-size: clamp(1.5rem, 2vw, 1.2rem);
+    color: rgb(13, 67, 87);
+}
+.registration-form  input{
+    margin: 10px;
+    font-size: clamp(1.5rem, 2vw, 1.2rem);
+    border-radius: 10px;
+    border: 2px solid rgb(30, 133, 116);;
+    padding: 10px;
+    width: 350px;
+}
+.registration-form button{
+    padding: 10px 40px 10px 40px;
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    border-radius: 20px;
+    background-color: rgb(13, 67, 87);
+    color: aliceblue;
+    margin: 40px 0 0 0;
+}

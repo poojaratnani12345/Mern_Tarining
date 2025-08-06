@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body onload="home()">
+    <nav id="navbar">
+        <a href="/registration.html">Registration</a>
+        <a href="/login.html">Login</a>
+        <a href="/home.html">Home</a>
+    </nav>
+    <h1 id="welcome_quize">Welcome to the Quize</h1>
+    <div id="quize">
+        <div id="timer">
+        </div>
+        <br>
+        <div id="question">
+        </div>
+        <br>
+        <div id="options">
+            <ol id="quizelist"></ol>
+        </div><br>
+        <button id="previous" disable>Previous</button>
+        <button id="next">Next</button>
+        <button id="submit_btn">Submit</button>
+    </div>
+    <div id="quize_result" style="display:none">
+        <h1>Quize Result</h1>
+        <div id="result" style="display:none"></div>
+    </div>
+
+    <script src="index.js"></script>
+
+</body>
+
+</html>
