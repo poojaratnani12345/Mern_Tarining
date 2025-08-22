@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="style.css">
 
 </head>
+
 <body>
     <nav id="navbar">
         <a href="/registration.html">Registration</a>
@@ -16,8 +18,8 @@
 
     <div class="registration-container">
 
-        <form onsubmit="registrationData(); return false;" class="registration-form">
-        <h1 class="title">Register for Quize</h1>
+        <form class="registration-form" onsubmit="registerUser(); return false;">
+            <h1 class="title">Register for Quize</h1>
 
             <label for="name">Name:</label>
             <input type="text" id="name" name="name" required>
@@ -35,9 +37,73 @@
             <input type="password" id="confirm-password" name="confirm-password" required>
             <br>
             <button type="submit">Register</button>
+            <p>If You are register plese Login:</p><a href="/login.html">Login Here</a>
         </form>
     </div>
 
-   <script src="index.js"></script>
+
+
+    <script src="index.js"></script>
+
+    <script type="module">
+        import { auth, db } from './firebase-config.js';
+        import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
+        import { setDoc, doc } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+        
+        console.log("Registration module loaded");
+
+        async function registerUser() {
+            const name = document.getElementById("name").value;
+            const age = document.getElementById("age").value;
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            const confirmPassword = document.getElementById("confirm-password").value;
+        
+            console.log("name:",name);
+            console.log("age:",age);
+            console.log("email:",email);
+            console.log("password:",password);
+            console.log("confirmPassword:",confirmPassword);
+
+            if (password !== confirmPassword) {
+                alert("Passwords do not match");
+                return;
+            }
+            if (age <= 0) {
+                alert("Please enter a valid age");
+                return;
+            }
+        
+            try {
+                // 1. Create Auth user
+                console.log("name:",name);
+
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                console.log("Firebase Auth user created:", userCredential.user);
+        
+                // 2. Save extra data in Firestore
+                await setDoc(doc(db, "registrations", email), {
+                    name,
+                    age: parseInt(age),
+                    email,
+                    password,
+                    createdAt: new Date()
+                });
+        
+                alert("Registration successful!");
+                window.location.href = "/login.html";
+            } catch (error) {
+                console.error("Registration error:", error);
+                alert("Error: " + error.message);
+            }
+        }
+        window.registerUser = registerUser;
+
+        
+    </script>
+    
+    
+
 </body>
+
 </html>

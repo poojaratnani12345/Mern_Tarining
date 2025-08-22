@@ -1,31 +1,12 @@
-function registrationData() {
-  let register_name = document.getElementById("name").value;
-  let register_age = document.getElementById("age").value;
-  let register_email = document.getElementById("email").value;
-  let register_password = document.getElementById("password").value;
-  let register_confirmPassword =
-    document.getElementById("confirm-password").value;
-  console.log(
-    register_name,
-    register_age,
-    register_email,
-    register_password,
-    register_confirmPassword
-  );
 
-  if (register_password !== register_confirmPassword) {
-    alert("Passwords does not match");
-  } else if (register_age <= 0) {
-    alert("please enter a valid age");
-  } else {
-    alert("Registration Successful");
-    document.cookie =
-      "email=" + encodeURIComponent(register_email) + "; path=/";
-    document.cookie =
-      "password=" + encodeURIComponent(register_password) + "; path=/";
-    window.location.href = "/login.html";
-  }
-}
+// index.js
+import { auth, db } from "./firebase-config.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+import { setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+
+
+
 
 function getCookie(name) {
   const cookies = document.cookie.split("; ");
@@ -33,23 +14,13 @@ function getCookie(name) {
     const [key, value] = c.split("=");
     if (key === name) return decodeURIComponent(value);
   }
+
+﻿
+
   return null;
 }
 
-function loginData() {
-  let login_email = document.getElementById("email").value;
-  let login_password = document.getElementById("password").value;
 
-  const savedEmail = getCookie("email");
-  const savedPassword = getCookie("password");
-
-  if (login_email == savedEmail && login_password == savedPassword) {
-    alert("Login Successful");
-    window.location.href = "/home.html";
-  } else {
-    alert("Invalid email or password");
-  }
-}
 
 function home() {
   const quiz_questions = [
@@ -196,12 +167,45 @@ function home() {
   let welcome_quize = document.getElementById("welcome_quize");
   let quize_result = document.getElementById("quize_result");
   let chart = document.getElementsByClassName("chart");
-  let camera_container=document.getElementsByClassName("camera-container");
-  let download_result=document.getElementById("download-result");
+  let camera_container = document.getElementsByClassName("camera-container");
+  let download_result = document.getElementById("download-result");
+
+
+
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      const userDocRef = doc(db, "registrations", user.uid);
+      const userSnap = await getDoc(userDocRef);
+  
+      if (!userSnap.exists() || userSnap.data().name === "Guest") {
+        const defaultName = user.email;
+        await setDoc(
+          userDocRef,
+          {
+            name: defaultName,
+            email: user.email,
+            createdAt: serverTimestamp(),
+          },
+          { merge: true } 
+        );
+      }
+  
+      const updatedSnap = await getDoc(userDocRef);
+      const userData = updatedSnap.data();
+      const userName = userData.name;
+      console.log("Login user:",userName);
+
+      welcome_quize.textContent = `Welcome to the Quiz: ${userName}`;
+    } else {
+      window.location.href = "/login.html";
+    }
+  });
+  
+  
 
   // submit_btn.disabled = true;
   previousbtn.disabled = true;
-  download_result.disabled=true;
+  download_result.disabled = true;
 
   let quizelist = document.getElementById("quizelist");
 
@@ -366,63 +370,15 @@ function home() {
     }
   }
 
-  // let timerChart;
-
-  // function startTime() {
-  //   clearInterval(intervalId);
-  //   seconds = 5;
-  //   timer.innerHTML =
-  //     checkTime(hours) + ":" + checkTime(minutes) + ":" + checkTime(seconds);
-
-  //   intervalId = setInterval(() => {
-  //     seconds--;
-  //     let h = checkTime(hours);
-  //     let m = checkTime(minutes);
-  //     let s = checkTime(seconds);
-  //     ``;
-  //     timer.innerHTML = h + ":" + m + ":" + s;
-
-  //     if (seconds === 0) {
-  //       clearInterval(intervalId);
-  //       currentIndex++;
-  //       if (currentIndex < quiz_questions.length) {
-  //         renderquestions();
-  //       }
-  //     }
-  //   }, 1000);
-  // }
-
-  // function startTime() {
-  //   clearInterval(intervalId);
-  //   seconds = 20; // per question timer
-  //   updateTimerChart(seconds);
-
-  //   intervalId = setInterval(() => {
-  //     seconds--;
-  //     updateTimerChart(seconds);
-
-  //     if (seconds <= 0) {
-  //       clearInterval(intervalId);
-  //       currentIndex++;
-  //       if (currentIndex < quiz_questions.length) {
-  //         renderquestions();
-  //       }
-  //     }
-  //   }, 1000);
-  // }
-
   function startTimer() {
-    // Reset remaining time for each question
     remaining = total;
 
     let ctx = document.getElementById("timerChart").getContext("2d");
 
-    // Destroy previous chart if exists
     if (timerChart) {
       timerChart.destroy();
     }
 
-    // Create chart
     timerChart = new Chart(ctx, {
       type: "doughnut",
       data: {
@@ -461,10 +417,8 @@ function home() {
       ],
     });
 
-    // Clear previous interval
     if (intervalId) clearInterval(intervalId);
 
-    // Start countdown
     intervalId = setInterval(() => {
       remaining--;
 
@@ -475,43 +429,59 @@ function home() {
 
       if (remaining <= 0) {
         clearInterval(intervalId);
-        nextQuestion(); // automatically go to next question
+        nextQuestion(); 
       }
     }, 1000);
   }
 
-  // function checkTime(i) {
-  //   if (i < 10) {
-  //     i = "0" + i;
-  //   }
-  //   return i;
-  // }
-
+  
   submit_btn.onclick = checkanswer;
 
-  function checkanswer() {
+
+//   // ---- Helper to save score ----
+// async function saveUserScore(userId, score, totalQuestions) {
+//   if (!userId) return;
+
+//   const scoreDocRef = doc(db, "registrations", userId, "scores", "latest"); 
+//   console.log("scoreDocRef:",scoreDocRef);
+
+//   await setDoc(scoreDocRef, {
+//     your_score: score,
+//     total_questions: totalQuestions,
+//     percentage: ((score / totalQuestions) * 100).toFixed(2),
+//     timestamp: serverTimestamp(),
+//   }, { merge: true });
+//   console.log("score added");
+// }
+
+async function checkanswer() {
     quize.style.display = "none";
     welcome_quize.style.display = "none";
     quize_result.style.display = "block";
     result.style.display = "block";
     timer.style.display = "none";
     questionStatus.style.display = "none";
-    video.style.display="none";
-    download_result.disabled=false;
+    video.style.display = "none";
+    download_result.disabled = false;
 
-    download_result.onclick=printresult;
+    download_result.onclick = printresult;
 
     if (camera_container.length > 0) {
       camera_container[0].style.display = "none";
     }
 
-
     if (answerlist.length > 0) {
       answerlist[0].style.display = "none";
     }
 
-    result.innerHTML = ""; // clear old results
+    result.innerHTML = ""; 
     let correct_answer = 0;
+
+    let scrollableDiv = document.createElement("div");
+    scrollableDiv.className = "scrollable-result";
+    scrollableDiv.style.maxHeight = "500px"; 
+    scrollableDiv.style.overflowY = "auto";
+    result.appendChild(scrollableDiv);
 
     for (let i = 0; i < quiz_questions.length; i++) {
       const question = quiz_questions[i];
@@ -522,25 +492,22 @@ function home() {
         correct_answer++;
       }
 
-      // Build options
       let optionsHTML = question.options
         .map((opt) => {
           let optionClass = "review-option";
           let checked = userAnswer === opt ? "checked" : "";
 
-          // ✅ Case 1: User selected something
           if (userAnswer) {
             if (opt === question.answer) {
-              optionClass += " correct"; // mark correct answer
+              optionClass += " correct"; 
             }
             if (opt === userAnswer && userAnswer !== question.answer) {
-              optionClass += " incorrect"; // wrong selected
+              optionClass += " incorrect";
             }
           }
-          // ❌ Case 2: User did not select anything
           else {
             if (opt === question.answer) {
-              optionClass += ""; // do NOT highlight correct answer
+              optionClass += ""; 
             }
           }
 
@@ -549,7 +516,8 @@ function home() {
             <input type="radio" name="q${i}" disabled ${
             checked ? "checked" : ""
           }>
-            ${opt}
+            ${prefixes[question.options.indexOf(opt)]}. ${opt}
+
             ${
               userAnswer
                 ? opt === question.answer
@@ -564,7 +532,6 @@ function home() {
         })
         .join("");
 
-      // Handle case: No Answer selected
       if (!userAnswer) {
         optionsHTML += `
           <div class="no-answer">
@@ -573,7 +540,6 @@ function home() {
         `;
       }
 
-      // Sirf ek scrollable container banao
       if (!document.querySelector(".scrollable-result")) {
         result.innerHTML = `<div class="scrollable-result"></div>`;
       }
@@ -595,6 +561,15 @@ function home() {
     document
       .querySelector(".chart")
       .insertAdjacentHTML("afterbegin", scoreHTML);
+
+
+//       // ---- SAVE SCORE TO FIRESTORE ----
+//       console.log("login user for answr store:",auth.currentUser);
+// if (auth.currentUser) {
+//   await saveUserScore(auth.currentUser.uid, correct_answer, quiz_questions.length);
+// }
+
+
 
     // ---- PIE CHART ----
     if (window.quizChart) {
@@ -633,130 +608,140 @@ function home() {
     });
   }
 
-
-
   const cameraContainer = document.querySelector(".camera-container");
-const warningDiv = document.createElement("div");
-const video = document.getElementById("quizCamera");
-const canvas = document.getElementById("snapshot");
-const ctx = canvas.getContext("2d"); // Declare here
+  const warningDiv = document.createElement("div");
+  const video = document.getElementById("quizCamera");
+  const canvas = document.getElementById("snapshot");
+  const ctx = canvas.getContext("2d"); 
 
-warningDiv.style.position = "static";
-// warningDiv.style.top = "10px";
-warningDiv.style.left = "10px";
-warningDiv.style.marginTop = "10px"; // spacing below canvas
+  warningDiv.style.position = "static";
+  // warningDiv.style.top = "10px";
+  warningDiv.style.left = "10px";
+  warningDiv.style.marginTop = "10px"; 
 
-warningDiv.style.background = "rgba(255,255,255,0.95)";
-warningDiv.style.padding = "6px 12px";
-warningDiv.style.borderRadius = "4px";
-warningDiv.style.zIndex = 9999;
-warningDiv.style.color = "red";
-warningDiv.style.fontWeight = "bold";
-warningDiv.style.fontSize = "16px";
-warningDiv.innerText = "Face not properly visible!";
-warningDiv.style.display = "none";
+  warningDiv.style.background = "rgba(255,255,255,0.95)";
+  warningDiv.style.padding = "6px 12px";
+  warningDiv.style.borderRadius = "4px";
+  warningDiv.style.zIndex = 9999;
+  warningDiv.style.color = "red";
+  warningDiv.style.fontWeight = "bold";
+  warningDiv.style.fontSize = "16px";
+  warningDiv.innerText = "Face not properly visible!";
+  warningDiv.style.display = "none";
 
+  canvas.after(warningDiv);
 
-canvas.after(warningDiv);
+  // Load face-api models
+  async function loadModels() {
+    await faceapi.nets.tinyFaceDetector.loadFromUri("/models");
+  }
 
-// Load face-api models
-async function loadModels() {
-  await faceapi.nets.tinyFaceDetector.loadFromUri("/models");
-}
+  // Start video
+  navigator.mediaDevices
+    .getUserMedia({ video: true })
+    .then((stream) => (video.srcObject = stream))
+    .catch((err) => console.error("Camera access denied: ", err));
 
-// Start video
-navigator.mediaDevices
-  .getUserMedia({ video: true })
-  .then((stream) => (video.srcObject = stream))
-  .catch((err) => console.error("Camera access denied: ", err));
-
-video.addEventListener("play", () => {
-  const displaySize = { width: video.width, height: video.height };
-  faceapi.matchDimensions(canvas, displaySize);
-
-  let warningVisible = false;
-  let consecutiveNoFace = 0;
-  let consecutiveFace = 0;
-  const threshold = 3; // number of consecutive intervals before toggling
-
-  setInterval(async () => {
-    const options = new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.7 });
-    const detections = await faceapi.detectAllFaces(video, options);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
+  video.addEventListener("play", () => {
     const displaySize = { width: video.width, height: video.height };
     faceapi.matchDimensions(canvas, displaySize);
-    const resizedDetections = faceapi.resizeResults(detections, displaySize);
-  
-    // Do NOT draw detection boxes
-  
-    if (detections.length === 0) {
-      warningDiv.innerText = "Face not detected!";
-      warningDiv.style.display = "block";
-    } else if (detections.length > 1) {
-      warningDiv.innerText = "Too many faces detected!";
-      warningDiv.style.display = "block";
-    } else {
-      const box = resizedDetections[0].box;
-      const minWidth = video.width * 0.3;
-      const minHeight = video.height * 0.3;
-      if (box.width < minWidth || box.height < minHeight) {
-        warningDiv.innerText = "Face is partially visible or too small!";
+
+    let warningVisible = false;
+    let consecutiveNoFace = 0;
+    let consecutiveFace = 0;
+    const threshold = 3;
+
+    setInterval(async () => {
+      const options = new faceapi.TinyFaceDetectorOptions({
+        scoreThreshold: 0.7,
+      });
+      const detections = await faceapi.detectAllFaces(video, options);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const displaySize = { width: video.width, height: video.height };
+      faceapi.matchDimensions(canvas, displaySize);
+      const resizedDetections = faceapi.resizeResults(detections, displaySize);
+
+
+      if (detections.length === 0) {
+        warningDiv.innerText = "Face not detected!";
         warningDiv.style.display = "block";
-      } else if (
-        box.x < 0 ||
-        box.y < 0 ||
-        box.x + box.width > video.width ||
-        box.y + box.height > video.height
-      ) {
-        warningDiv.innerText = "Face is not fully inside the camera view!";
+      } else if (detections.length > 1) {
+        warningDiv.innerText = "Too many faces detected!";
         warningDiv.style.display = "block";
       } else {
-        warningDiv.style.display = "none";
+        const box = resizedDetections[0].box;
+        const minWidth = video.width * 0.3;
+        const minHeight = video.height * 0.3;
+        if (box.width < minWidth || box.height < minHeight) {
+          warningDiv.innerText = "Face is partially visible or too small!";
+          warningDiv.style.display = "block";
+        } else if (
+          box.x < 0 ||
+          box.y < 0 ||
+          box.x + box.width > video.width ||
+          box.y + box.height > video.height
+        ) {
+          warningDiv.innerText = "Face is not fully inside the camera view!";
+          warningDiv.style.display = "block";
+        } else {
+          warningDiv.style.display = "none";
+        }
       }
+    }, 100);
+  });
+
+  loadModels();
+
+  async function printresult() {
+    const element = document.querySelector("#quize_result");
+    if (!element) return;
+  
+    // Save original styles for scrollable section
+    const scrollable = element.querySelector(".scrollable-result");
+    const originalStyle = scrollable
+      ? {
+          height: scrollable.style.height,
+          maxHeight: scrollable.style.maxHeight,
+          overflow: scrollable.style.overflow,
+        }
+      : null;
+  
+    // Expand scrollable section to show all questions
+    if (scrollable) {
+      scrollable.style.height = "auto";
+      scrollable.style.maxHeight = "none";
+      scrollable.style.overflow = "visible";
     }
-  }, 100);
+  
+    // Wait for browser to render
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+  
+    // Capture entire quiz result
+    html2pdf()
+      .set({
+        margin: 10,
+        filename: "quiz_result.pdf",
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 2, scrollY: 0, useCORS: true },
+        jsPDF: { orientation: "portrait", unit: "pt", format: "a4" },
+      })
+      .from(element)
+      .save()
+      .finally(() => {
+        // Restore original scrollable styles
+        if (scrollable) {
+          scrollable.style.height = originalStyle.height;
+          scrollable.style.maxHeight = originalStyle.maxHeight;
+          scrollable.style.overflow = originalStyle.overflow;
+        }
+      });
+  }
   
   
-});
+  
 
-loadModels();
-
-async function printresult() {
-  const element = document.querySelector(".scrollable-result");
-  if (!element) return;
-
-  // Save original styles
-  const originalHeight = element.style.height;
-  const originalOverflow = element.style.overflow;
-
-  // Temporarily expand container to fit all content
-  element.style.height = "auto";
-  element.style.overflow = "visible";
-
-  // Wait for the browser to render changes
-  await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-
-  // Use html2pdf to capture full content
-  html2pdf()
-    .set({
-      margin: 10,
-      filename: "quiz_result.pdf",
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: {
-        scale: 2,
-        scrollY: 0, // important to capture full content
-        useCORS: true, // if you have images
-      },
-      jsPDF: { orientation: "portrait", unit: "pt", format: "a4" },
-    })
-    .from(element)
-    .save()
-    .finally(() => {
-      // Restore original styles
-      element.style.height = originalHeight;
-      element.style.overflow = originalOverflow;
-    });
-}
 
 }
+window.home = home;
+home();
