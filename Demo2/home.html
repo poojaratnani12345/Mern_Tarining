@@ -6,6 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
 </head>
 
 <body onload="home()">
@@ -14,25 +19,61 @@
         <a href="/login.html">Login</a>
         <a href="/home.html">Home</a>
     </nav>
-    <h1 id="welcome_quize">Welcome to the Quize</h1>
-    <div id="quize">
-        <div id="timer">
+
+    <div class="camera-container">
+        <div class="camera-with-error"> 
+            <video id="quizCamera" autoplay playsinline width="250" height="150"></video>
+                <!-- <button id="captureBtn">Capture</button> -->
+            <canvas id="snapshot" width="250" height="150"></canvas>
+
         </div>
-        <br>
-        <div id="question">
+
+        <h1 id="welcome_quize">Welcome to the Quize</h1>
+
+    </div>
+
+    <div class="main">
+        <div id="quize">
+            <br>
+            <div id="question">
+            </div>
+            <br>
+            <div id="options">
+                <ol id="quizelist"></ol>
+            </div><br>
+            <button id="previous">Previous</button>
+            <button id="next">Next</button>
+            <button id="submit_btn">Submit</button>
         </div>
-        <br>
-        <div id="options">
-            <ol id="quizelist"></ol>
-        </div><br>
-        <button id="previous" disable>Previous</button>
-        <button id="next">Next</button>
-        <button id="submit_btn">Submit</button>
+        <div class="timer-answer-list">
+            <div id="timer">
+                <canvas id="timerChart" width="120" height="120"></canvas>
+                <div id="timerText"
+                    style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); font-weight:bold;">
+                </div>
+            </div>
+
+            <div class="answer-list">
+                <h4>Quiz Questions List</h4>
+                <ul id="questionStatus">
+                </ul>
+            </div>
+
+        </div>
     </div>
     <div id="quize_result" style="display:none">
         <h1>Quize Result</h1>
-        <div id="result" style="display:none"></div>
+        <div class="flex-chart">
+            <div id="result" style="display:none"></div>
+            <div class="chart" style="width:350px; margin:auto; margin-top:20px;">
+                <canvas id="quizPieChart"></canvas>
+            </div>
+        </div>
+        <div class="downloadresult">
+            <button id="download-result">Download Result</button>
+        </div>
     </div>
+    <script defer src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
 
     <script src="index.js"></script>
 

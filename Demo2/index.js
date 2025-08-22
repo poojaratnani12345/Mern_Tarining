@@ -186,7 +186,7 @@ function home() {
       answer: "Router",
     },
   ];
-
+  let quize = document.getElementById("quize");
   let quize_question = document.getElementById("question");
   let nxtbtn = document.getElementById("next");
   let previousbtn = document.getElementById("previous");
@@ -195,39 +195,72 @@ function home() {
   let result = document.getElementById("result");
   let welcome_quize = document.getElementById("welcome_quize");
   let quize_result = document.getElementById("quize_result");
+  let chart = document.getElementsByClassName("chart");
+  let camera_container=document.getElementsByClassName("camera-container");
+  let download_result=document.getElementById("download-result");
 
-  submit_btn.disabled = true;
+  // submit_btn.disabled = true;
   previousbtn.disabled = true;
+  download_result.disabled=true;
 
   let quizelist = document.getElementById("quizelist");
 
   let currentIndex = 0;
-  let answer_list = []; // user_answer + correct answer
-  // let correct_answer=[]; // correct answer
+  let answer_list = [];
+  let seconds = 5;
+  // let minutes = 0;
+  // let hours = 0;
+  let intervalId = null;
+  let timerChart;
+  let total = 20; // total seconds
+  let remaining = total;
+  const prefixes = ["A", "B", "C", "D"]; // Or generate dynamically
 
-  quize_question.innerText = `Q:${currentIndex + 1}: ${
-    quiz_questions[currentIndex].question
-  }`;
-  quizelist.innerHTML = "";
+  // quize_question.innerText = `Q:${currentIndex + 1}: ${
+  //   quiz_questions[currentIndex].question
+  // }`;
+  // quizelist.innerHTML = "";
 
-  for (let i = 0; i < quiz_questions[currentIndex].options.length; i++) {
+  // for (let i = 0; i < quiz_questions[currentIndex].options.length; i++) {
+  //   let li = document.createElement("li");
+
+  //   const checkbox = document.createElement("input");
+  //   checkbox.type = "radio";
+  //   checkbox.name = "option";
+  //   checkbox.value = quiz_questions[currentIndex].options[i];
+  //   checkbox.id = `option${i}`;
+
+  //   const label = document.createElement("label");
+  //   label.htmlFor = checkbox.id;
+  //   label.innerText = quiz_questions[currentIndex].options[i];
+
+  //   li.appendChild(checkbox);
+  //   li.appendChild(label);
+
+  //   quizelist.appendChild(li);
+  // }
+  let totalQuestions = 20;
+  let questionStatus = document.getElementById("questionStatus");
+  let answerlist = document.getElementsByClassName("answer-list");
+
+  // Initial list
+  // Build question status list with circles
+  for (let i = 1; i <= totalQuestions; i++) {
     let li = document.createElement("li");
-
-    const checkbox = document.createElement("input");
-    checkbox.type = "radio";
-    checkbox.name = "option";
-    checkbox.value = quiz_questions[currentIndex].options[i];
-    checkbox.id = `option${i}`;
-
-    const label = document.createElement("label");
-    label.htmlFor = checkbox.id;
-    label.innerText = quiz_questions[currentIndex].options[i];
-
-    li.appendChild(checkbox);
-    li.appendChild(label);
-
-    quizelist.appendChild(li);
+    li.id = `q${i}`;
+    li.innerHTML = `<span class="circle">${i}</span>`;
+    questionStatus.appendChild(li);
   }
+
+  // Mark question as answered (turn circle green)
+  function markAnswered(qNo) {
+    let li = document.getElementById(`q${qNo}`);
+    if (li) {
+      li.querySelector(".circle").classList.add("answered");
+    }
+  }
+
+  renderquestions();
 
   function nextQuestion() {
     const selectedOption = document.querySelector(
@@ -235,18 +268,25 @@ function home() {
     );
 
     if (selectedOption) {
-      answer_list.push({
+      answer_list[currentIndex] = {
         question_no: currentIndex + 1,
         question: quiz_questions[currentIndex].question,
         user_answer: selectedOption.value,
         actual_answer: quiz_questions[currentIndex].answer,
-      });
+      };
+      markAnswered(answer_list[currentIndex].question_no);
+    }
+    if (currentIndex < quiz_questions.length - 1) {
+      currentIndex++;
+      renderquestions();
+    } else {
+      submit_btn.disabled = true;
     }
 
-    previousbtn.disabled = false;
-    currentIndex++;
-    renderquestions();
+    previousbtn.disabled = currentIndex === 0;
+    nxtbtn.disabled = currentIndex === quiz_questions.length - 1;
   }
+
   nxtbtn.onclick = nextQuestion;
 
   previousbtn.onclick = () => {
@@ -261,8 +301,7 @@ function home() {
       previousbtn.disabled = true;
     }
   };
-
-  renderquestions = () => {
+  function renderquestions() {
     if (currentIndex < quiz_questions.length) {
       quize_question.innerText = `Q:${currentIndex + 1}: ${
         quiz_questions[currentIndex].question
@@ -277,59 +316,176 @@ function home() {
         checkbox.value = quiz_questions[currentIndex].options[i];
         checkbox.id = `option${i}`;
 
+        const savedAnswer = answer_list[currentIndex]?.user_answer;
+        if (savedAnswer === quiz_questions[currentIndex].options[i]) {
+          checkbox.checked = true;
+        }
         const label = document.createElement("label");
         label.htmlFor = checkbox.id;
         label.innerText = quiz_questions[currentIndex].options[i];
+        label.textContent = `${prefixes[i]}. ${quiz_questions[currentIndex].options[i]}`;
 
         li.appendChild(checkbox);
         li.appendChild(label);
 
         quizelist.appendChild(li);
       }
-      startTime();
+
+      const allOptions = quizelist.querySelectorAll("li");
+
+      allOptions.forEach((li) => {
+        const input = li.querySelector("input");
+
+        input.addEventListener("change", () => {
+          allOptions.forEach((el) => el.classList.remove("selected"));
+
+          li.classList.add("selected");
+          // ✅ Save selection immediately
+          answer_list[currentIndex] = {
+            question_no: currentIndex + 1,
+            question: quiz_questions[currentIndex].question,
+            user_answer: input.value,
+            actual_answer: quiz_questions[currentIndex].answer,
+          };
+          markAnswered(answer_list[currentIndex].question_no);
+
+          // console.log("answer_list:",answer_list)
+        });
+
+        if (input.checked) {
+          li.classList.add("selected");
+        }
+      });
+
+      startTimer();
     } else {
       nxtbtn.disabled = true;
       submit_btn.disabled = false;
 
       timer.innerHTML = "00:00:00";
     }
-  };
+  }
 
-  let seconds = 5;
-  let minutes = 0;
-  let hours = 0;
-  let intervalId = null;
+  // let timerChart;
 
-  function startTime() {
-    clearInterval(intervalId);
-    seconds = 5;
-    timer.innerHTML =
-      checkTime(hours) + ":" + checkTime(minutes) + ":" + checkTime(seconds);
+  // function startTime() {
+  //   clearInterval(intervalId);
+  //   seconds = 5;
+  //   timer.innerHTML =
+  //     checkTime(hours) + ":" + checkTime(minutes) + ":" + checkTime(seconds);
 
+  //   intervalId = setInterval(() => {
+  //     seconds--;
+  //     let h = checkTime(hours);
+  //     let m = checkTime(minutes);
+  //     let s = checkTime(seconds);
+  //     ``;
+  //     timer.innerHTML = h + ":" + m + ":" + s;
+
+  //     if (seconds === 0) {
+  //       clearInterval(intervalId);
+  //       currentIndex++;
+  //       if (currentIndex < quiz_questions.length) {
+  //         renderquestions();
+  //       }
+  //     }
+  //   }, 1000);
+  // }
+
+  // function startTime() {
+  //   clearInterval(intervalId);
+  //   seconds = 20; // per question timer
+  //   updateTimerChart(seconds);
+
+  //   intervalId = setInterval(() => {
+  //     seconds--;
+  //     updateTimerChart(seconds);
+
+  //     if (seconds <= 0) {
+  //       clearInterval(intervalId);
+  //       currentIndex++;
+  //       if (currentIndex < quiz_questions.length) {
+  //         renderquestions();
+  //       }
+  //     }
+  //   }, 1000);
+  // }
+
+  function startTimer() {
+    // Reset remaining time for each question
+    remaining = total;
+
+    let ctx = document.getElementById("timerChart").getContext("2d");
+
+    // Destroy previous chart if exists
+    if (timerChart) {
+      timerChart.destroy();
+    }
+
+    // Create chart
+    timerChart = new Chart(ctx, {
+      type: "doughnut",
+      data: {
+        labels: ["Time Left", "Elapsed"],
+        datasets: [
+          {
+            data: [remaining, total - remaining],
+            backgroundColor: ["#4CAF50", "#ddd"],
+            borderWidth: 0,
+          },
+        ],
+      },
+      options: {
+        cutout: "70%",
+        plugins: {
+          legend: { display: false },
+          tooltip: { enabled: false },
+        },
+      },
+      plugins: [
+        {
+          id: "timerText",
+          afterDraw(chart) {
+            const {
+              ctx,
+              chartArea: { width, height },
+            } = chart;
+            ctx.save();
+            ctx.font = "bold 28px Arial";
+            ctx.fillStyle = "#333";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(remaining + "s", width / 2, height / 2);
+          },
+        },
+      ],
+    });
+
+    // Clear previous interval
+    if (intervalId) clearInterval(intervalId);
+
+    // Start countdown
     intervalId = setInterval(() => {
-      seconds--;
-      let h = checkTime(hours);
-      let m = checkTime(minutes);
-      let s = checkTime(seconds);
-      ``;
-      timer.innerHTML = h + ":" + m + ":" + s;
+      remaining--;
 
-      if (seconds === 0) {
+      if (remaining >= 0) {
+        timerChart.data.datasets[0].data = [remaining, total - remaining];
+        timerChart.update();
+      }
+
+      if (remaining <= 0) {
         clearInterval(intervalId);
-        currentIndex++;
-        if (currentIndex < quiz_questions.length) {
-          renderquestions();
-        }
+        nextQuestion(); // automatically go to next question
       }
     }, 1000);
   }
 
-  function checkTime(i) {
-    if (i < 10) {
-      i = "0" + i;
-    }
-    return i;
-  }
+  // function checkTime(i) {
+  //   if (i < 10) {
+  //     i = "0" + i;
+  //   }
+  //   return i;
+  // }
 
   submit_btn.onclick = checkanswer;
 
@@ -338,30 +494,269 @@ function home() {
     welcome_quize.style.display = "none";
     quize_result.style.display = "block";
     result.style.display = "block";
+    timer.style.display = "none";
+    questionStatus.style.display = "none";
+    video.style.display="none";
+    download_result.disabled=false;
 
-    correct_answer = 0;
-    answer_list;
-    for (let i = 0; i < answer_list.length; i++) {
-      if (answer_list[i].actual_answer === answer_list[i].user_answer) {
+    download_result.onclick=printresult;
+
+    if (camera_container.length > 0) {
+      camera_container[0].style.display = "none";
+    }
+
+
+    if (answerlist.length > 0) {
+      answerlist[0].style.display = "none";
+    }
+
+    result.innerHTML = ""; // clear old results
+    let correct_answer = 0;
+
+    for (let i = 0; i < quiz_questions.length; i++) {
+      const question = quiz_questions[i];
+      const userAnswer = answer_list[i]?.user_answer || null;
+      const isCorrect = userAnswer === question.answer;
+
+      if (isCorrect) {
         correct_answer++;
       }
 
-      result.innerHTML += `
-    <div style="margin-bottom:10px; border-bottom:1px solid #ccc; padding-bottom:5px;">
-      <strong>Q${i + 1}: ${answer_list[i].question}</strong><br>
-      Your Answer: <span style="color:${
-        answer_list[i].user_answer === answer_list[i].actual_answer
-          ? "green"
-          : "red"
-      }">${answer_list[i].user_answer}</span><br>
-      Correct Answer: <strong>${answer_list[i].actual_answer}</strong>
-    </div>
+      // Build options
+      let optionsHTML = question.options
+        .map((opt) => {
+          let optionClass = "review-option";
+          let checked = userAnswer === opt ? "checked" : "";
+
+          // ✅ Case 1: User selected something
+          if (userAnswer) {
+            if (opt === question.answer) {
+              optionClass += " correct"; // mark correct answer
+            }
+            if (opt === userAnswer && userAnswer !== question.answer) {
+              optionClass += " incorrect"; // wrong selected
+            }
+          }
+          // ❌ Case 2: User did not select anything
+          else {
+            if (opt === question.answer) {
+              optionClass += ""; // do NOT highlight correct answer
+            }
+          }
+
+          return `
+          <label class="${optionClass}">
+            <input type="radio" name="q${i}" disabled ${
+            checked ? "checked" : ""
+          }>
+            ${opt}
+            ${
+              userAnswer
+                ? opt === question.answer
+                  ? '<span class="icon">✔</span>'
+                  : opt === userAnswer && userAnswer !== question.answer
+                  ? '<span class="icon">✖</span>'
+                  : ""
+                : ""
+            }
+          </label>
+        `;
+        })
+        .join("");
+
+      // Handle case: No Answer selected
+      if (!userAnswer) {
+        optionsHTML += `
+          <div class="no-answer">
+            ❌ You did not select any answer.
+          </div>
+        `;
+      }
+
+      // Sirf ek scrollable container banao
+      if (!document.querySelector(".scrollable-result")) {
+        result.innerHTML = `<div class="scrollable-result"></div>`;
+      }
+
+      document.querySelector(".scrollable-result").innerHTML += `
+    <div class="review-card">
+      <div class="review-question">Q${i + 1}. ${question.question}</div>
+      ${optionsHTML}
+    </div>  
   `;
     }
-    result.innerHTML += `<h3>You got ${correct_answer} out of ${quiz_questions.length} correct!</h3>`;
+
+    // Show score
+    let scoreHTML = `
+    <div style="margin:20px; font-weight:bold; font-size:1.5rem; text-align:center;">
+      🎯 You got ${correct_answer} out of ${quiz_questions.length} correct!
+    </div>
+  `;
+    document
+      .querySelector(".chart")
+      .insertAdjacentHTML("afterbegin", scoreHTML);
+
+    // ---- PIE CHART ----
+    if (window.quizChart) {
+      window.quizChart.destroy();
+    }
+    const ctx = document.getElementById("quizPieChart").getContext("2d");
+
+    const not_answered = quiz_questions.length - answer_list.length;
+    const incorrect_answer =
+      quiz_questions.length - correct_answer - not_answered;
+
+    window.quizChart = new Chart(ctx, {
+      type: "pie",
+      data: {
+        labels: ["Correct", "Incorrect", "Not Answered"],
+        datasets: [
+          {
+            data: [correct_answer, incorrect_answer, not_answered],
+            backgroundColor: ["#4CAF50", "#F44336", "#8758a6"],
+            hoverOffset: 10,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          title: {
+            display: true,
+            text: "Quiz Results",
+          },
+          legend: {
+            position: "bottom",
+          },
+        },
+      },
+    });
   }
+
+
+
+  const cameraContainer = document.querySelector(".camera-container");
+const warningDiv = document.createElement("div");
+const video = document.getElementById("quizCamera");
+const canvas = document.getElementById("snapshot");
+const ctx = canvas.getContext("2d"); // Declare here
+
+warningDiv.style.position = "static";
+// warningDiv.style.top = "10px";
+warningDiv.style.left = "10px";
+warningDiv.style.marginTop = "10px"; // spacing below canvas
+
+warningDiv.style.background = "rgba(255,255,255,0.95)";
+warningDiv.style.padding = "6px 12px";
+warningDiv.style.borderRadius = "4px";
+warningDiv.style.zIndex = 9999;
+warningDiv.style.color = "red";
+warningDiv.style.fontWeight = "bold";
+warningDiv.style.fontSize = "16px";
+warningDiv.innerText = "Face not properly visible!";
+warningDiv.style.display = "none";
+
+
+canvas.after(warningDiv);
+
+// Load face-api models
+async function loadModels() {
+  await faceapi.nets.tinyFaceDetector.loadFromUri("/models");
 }
 
+// Start video
+navigator.mediaDevices
+  .getUserMedia({ video: true })
+  .then((stream) => (video.srcObject = stream))
+  .catch((err) => console.error("Camera access denied: ", err));
 
+video.addEventListener("play", () => {
+  const displaySize = { width: video.width, height: video.height };
+  faceapi.matchDimensions(canvas, displaySize);
 
+  let warningVisible = false;
+  let consecutiveNoFace = 0;
+  let consecutiveFace = 0;
+  const threshold = 3; // number of consecutive intervals before toggling
 
+  setInterval(async () => {
+    const options = new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.7 });
+    const detections = await faceapi.detectAllFaces(video, options);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+    const displaySize = { width: video.width, height: video.height };
+    faceapi.matchDimensions(canvas, displaySize);
+    const resizedDetections = faceapi.resizeResults(detections, displaySize);
+  
+    // Do NOT draw detection boxes
+  
+    if (detections.length === 0) {
+      warningDiv.innerText = "Face not detected!";
+      warningDiv.style.display = "block";
+    } else if (detections.length > 1) {
+      warningDiv.innerText = "Too many faces detected!";
+      warningDiv.style.display = "block";
+    } else {
+      const box = resizedDetections[0].box;
+      const minWidth = video.width * 0.3;
+      const minHeight = video.height * 0.3;
+      if (box.width < minWidth || box.height < minHeight) {
+        warningDiv.innerText = "Face is partially visible or too small!";
+        warningDiv.style.display = "block";
+      } else if (
+        box.x < 0 ||
+        box.y < 0 ||
+        box.x + box.width > video.width ||
+        box.y + box.height > video.height
+      ) {
+        warningDiv.innerText = "Face is not fully inside the camera view!";
+        warningDiv.style.display = "block";
+      } else {
+        warningDiv.style.display = "none";
+      }
+    }
+  }, 100);
+  
+  
+});
+
+loadModels();
+
+async function printresult() {
+  const element = document.querySelector(".scrollable-result");
+  if (!element) return;
+
+  // Save original styles
+  const originalHeight = element.style.height;
+  const originalOverflow = element.style.overflow;
+
+  // Temporarily expand container to fit all content
+  element.style.height = "auto";
+  element.style.overflow = "visible";
+
+  // Wait for the browser to render changes
+  await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+  // Use html2pdf to capture full content
+  html2pdf()
+    .set({
+      margin: 10,
+      filename: "quiz_result.pdf",
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: {
+        scale: 2,
+        scrollY: 0, // important to capture full content
+        useCORS: true, // if you have images
+      },
+      jsPDF: { orientation: "portrait", unit: "pt", format: "a4" },
+    })
+    .from(element)
+    .save()
+    .finally(() => {
+      // Restore original styles
+      element.style.height = originalHeight;
+      element.style.overflow = originalOverflow;
+    });
+}
+
+}
