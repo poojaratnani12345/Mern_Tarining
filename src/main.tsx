@@ -1,7 +1,27 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import Nine from './usestate/nine.tsx'
+// import Second from './useRef/second.tsx'
+// import Third from './useRef/third.tsx'
+// import Forth from './useRef/forth.tsx'
+// import Nine from './usestate/nine.tsx'
+// import First from './useeffect/first.tsx'
+// import Third from './useeffect/third.tsx'
+// import Forth from './useeffect/forth.tsx'
+// import Fifth from './useeffect/fifth.tsx'
+// import Sixth from './useeffect/sixth.tsx'
+// import Seven from './useeffect/seven.tsx'
+// import Eight from './useeffect/eight.tsx'
+// import Nine from './useeffect/nine.tsx'
+// import First from './useReduce/first.tsx'
+// import Second from './useReduce/second.tsx'
+// import Third from './useReduce/third.tsx'
+// import Forth from './useReduce/forth.tsx'
+// import Fifth from './useReduce/fifth.tsx'
+// import Six from './useReduce/six.tsx'
+// import Seven from './useReduce/seven.tsx'
+// import First from './useRef/first.tsx'
+import Fifth from './useRef/fifth.tsx'
 // import Ten from './usestate/ten.tsx'
 // import Eight from './usestate/eight.tsx'
 // import Seventh from './usestate/seventh.tsx'
@@ -15,6 +35,6 @@ import Nine from './usestate/nine.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <Nine />
+    <Fifth />
   </StrictMode>,
 )
